@@ -1,1 +1,1 @@
-# GitHub-PR-Differ
+# github-pr-diff-counter
