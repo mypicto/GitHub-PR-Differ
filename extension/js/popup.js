@@ -60,6 +60,42 @@ class TreeViewManager {
       });
     });
 
+    // 再帰的にツリーを簡略化
+    const simplifyTree = (node) => {
+      Object.keys(node).forEach(key => {
+        const item = node[key];
+        const childKeys = Object.keys(item.children);
+  
+        // サブディレクトリが1つだけで、かつその子がさらに子を持つ場合
+        if (childKeys.length === 1) {
+          const childKey = childKeys[0];
+          const childItem = item.children[childKey];
+  
+          if (Object.keys(childItem.children).length > 0) { // 追加条件
+            // パスを結合
+            const combinedKey = `${key}/${childKey}`;
+            node[combinedKey] = {
+              diff: item.diff + childItem.diff,
+              children: childItem.children,
+              filePath: childItem.filePath || null
+            };
+            delete node[key];
+  
+            // 再帰的に簡略化
+            simplifyTree(node[combinedKey].children);
+          } else {
+            // 子がさらに子を持たない場合は結合しない
+            simplifyTree(item.children);
+          }
+        } else {
+          // サブディレクトリが複数ある場合、再帰的に処理
+          simplifyTree(item.children);
+        }
+      });
+    };
+
+    simplifyTree(tree);
+
     return tree;
   }
 
@@ -81,7 +117,7 @@ class TreeViewManager {
       if (this.hasChildren(item)) {
         // ディレクトリの場合
         const span = this.createElement('span', {
-          textContent: `${key}/ (${item.diff})`,
+          textContent: `${key}/ (${item.diff.toLocaleString()})`,
           className: 'directory expanded'
         });
 
@@ -94,7 +130,7 @@ class TreeViewManager {
         li.appendChild(ul);
       } else {
         // ファイルの場合
-        li.textContent = `${key} (${item.diff})`;
+        li.textContent = `${key} (${item.diff.toLocaleString()})`;
         li.classList.add('file');
       }
 

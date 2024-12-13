@@ -38,7 +38,6 @@ body {
   min-width: 600px;
   height: 100vh; /* ビューポートの高さに対応 */
   overflow-y: auto; /* コンテンツが増えた場合にスクロール */
-  /* overflow-x: hidden; 横スクロールを隠さないように削除 */
   color: var(--text-color);
   display: flex;
   flex-direction: column;
@@ -62,7 +61,6 @@ ul {
   list-style: none;
   padding: 0;
   margin: 0;
-  /* overflow-x: auto; 横スクロールを許可しない */
 }
 
 /* ツリービューのスタイル */
@@ -74,7 +72,6 @@ ul {
 }
 
 .tree-root ul {
-  max-height: 1000px;
   opacity: 1;
 }
 
