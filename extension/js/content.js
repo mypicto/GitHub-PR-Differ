@@ -9,10 +9,6 @@ function extractFilePath(fileElement) {
     return null;
   }
 
-  if (filePath.endsWith('HowMany2.unity')) {
-    console.log(fileElement);
-  }
-
   return filePath;
 }
 

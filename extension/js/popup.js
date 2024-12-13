@@ -1,38 +1,48 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const treeView = new TreeViewManager('diff-data');
-  treeView.initialize();
-});
+// DOMUtils.js
+class DOMUtils {
+  static createElement(tag, options = {}) {
+    const element = document.createElement(tag);
 
-class TreeViewManager {
-  constructor(containerId) {
-    this.container = document.getElementById(containerId);
-    this.treeData = {};
+    if (options.textContent) {
+      element.textContent = options.textContent;
+    }
+
+    if (options.className) {
+      element.className = options.className;
+    }
+
+    if (options.styles) {
+      Object.assign(element.style, options.styles);
+    }
+
+    return element;
+  }
+}
+
+// DataFetcher.js
+class DataFetcher {
+  constructor(chromeApi) {
+    this.chrome = chromeApi;
   }
 
-  initialize() {
-    this.fetchDiffData();
-  }
-
-  fetchDiffData() {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+  fetchActiveTabDiffData(callback) {
+    this.chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs.length === 0) {
         console.error('No active tabs found.');
+        callback(null);
         return;
       }
-      chrome.tabs.sendMessage(tabs[0].id, { action: "extractDiffData" }, (response) => {
-        this.handleResponse(response);
+      this.chrome.tabs.sendMessage(tabs[0].id, { action: "extractDiffData" }, (response) => {
+        callback(response);
       });
     });
   }
+}
 
-  handleResponse(response) {
-    if (!response) {
-      console.log('No response received from content script.');
-      return;
-    }
-
-    this.treeData = this.buildTreeStructure(response);
-    this.renderTreeView();
+// TreeBuilder.js
+class TreeBuilder {
+  constructor(simplifier) {
+    this.simplifier = simplifier;
   }
 
   buildTreeStructure(diffs) {
@@ -60,63 +70,73 @@ class TreeViewManager {
       });
     });
 
-    // 再帰的にツリーを簡略化
-    const simplifyTree = (node) => {
-      Object.keys(node).forEach(key => {
-        const item = node[key];
-        const childKeys = Object.keys(item.children);
-  
-        // サブディレクトリが1つだけで、かつその子がさらに子を持つ場合
-        if (childKeys.length === 1) {
-          const childKey = childKeys[0];
-          const childItem = item.children[childKey];
-  
-          if (Object.keys(childItem.children).length > 0) { // 追加条件
-            // パスを結合
-            const combinedKey = `${key}/${childKey}`;
-            node[combinedKey] = {
-              diff: item.diff + childItem.diff,
-              children: childItem.children,
-              filePath: childItem.filePath || null
-            };
-            delete node[key];
-  
-            // 再帰的に簡略化
-            simplifyTree(node[combinedKey].children);
-          } else {
-            // 子がさらに子を持たない場合は結合しない
-            simplifyTree(item.children);
-          }
-        } else {
-          // サブディレクトリが複数ある場合、再帰的に処理
-          simplifyTree(item.children);
-        }
-      });
-    };
-
-    simplifyTree(tree);
+    // ツリーの簡略化
+    this.simplifier.simplify(tree);
 
     return tree;
   }
+}
 
-  renderTreeView() {
+// TreeSimplifier.js
+class TreeSimplifier {
+  simplify(node) {
+    Object.keys(node).forEach(key => {
+      const item = node[key];
+      const childKeys = Object.keys(item.children);
+
+      // サブディレクトリが1つだけで、かつその子がさらに子を持つ場合
+      if (childKeys.length === 1) {
+        const childKey = childKeys[0];
+        const childItem = item.children[childKey];
+
+        if (Object.keys(childItem.children).length > 0) { // 追加条件
+          // パスを結合
+          const combinedKey = `${key}/${childKey}`;
+          node[combinedKey] = {
+            diff: item.diff + childItem.diff,
+            children: childItem.children,
+            filePath: childItem.filePath || null
+          };
+          delete node[key];
+
+          // 再帰的に簡略化
+          this.simplify(node[combinedKey].children);
+        } else {
+          // 子がさらに子を持たない場合は結合しない
+          this.simplify(item.children);
+        }
+      } else {
+        // サブディレクトリが複数ある場合、再帰的に処理
+        this.simplify(item.children);
+      }
+    });
+  }
+}
+
+// TreeRenderer.js
+class TreeRenderer {
+  constructor(domUtils) {
+    this.domUtils = domUtils;
+  }
+
+  render(container, treeData) {
     // 既存のコンテンツをクリア
-    this.container.innerHTML = '';
+    container.innerHTML = '';
 
     // ツリービューの作成
-    const ul = this.createElement('ul', { className: 'tree-root' });
-    this.createTreeView(ul, this.treeData);
-    this.container.appendChild(ul);
+    const ul = this.domUtils.createElement('ul', { className: 'tree-root' });
+    this.createTreeView(ul, treeData);
+    container.appendChild(ul);
   }
 
   createTreeView(parent, node) {
     Object.keys(node).forEach(key => {
-      const li = this.createElement('li');
+      const li = this.domUtils.createElement('li');
       const item = node[key];
 
       if (this.hasChildren(item)) {
         // ディレクトリの場合
-        const span = this.createElement('span', {
+        const span = this.domUtils.createElement('span', {
           textContent: `${key}/ (${item.diff.toLocaleString()})`,
           className: 'directory expanded'
         });
@@ -125,7 +145,7 @@ class TreeViewManager {
 
         li.appendChild(span);
 
-        const ul = this.createElement('ul', { className: 'nested' });
+        const ul = this.domUtils.createElement('ul', { className: 'nested' });
         this.createTreeView(ul, item.children);
         li.appendChild(ul);
       } else {
@@ -149,22 +169,51 @@ class TreeViewManager {
   hasChildren(item) {
     return item.children && Object.keys(item.children).length > 0;
   }
+}
 
-  createElement(tag, options = {}) {
-    const element = document.createElement(tag);
+// TreeViewManager.js
+class TreeViewManager {
+  constructor(containerId, dependencies) {
+    this.container = document.getElementById(containerId);
+    this.dataFetcher = dependencies.dataFetcher;
+    this.treeBuilder = dependencies.treeBuilder;
+    this.treeRenderer = dependencies.treeRenderer;
+  }
 
-    if (options.textContent) {
-      element.textContent = options.textContent;
+  initialize() {
+    this.dataFetcher.fetchActiveTabDiffData((response) => {
+      this.handleResponse(response);
+    });
+  }
+
+  handleResponse(response) {
+    if (!response) {
+      console.log('No response received from content script.');
+      return;
     }
 
-    if (options.className) {
-      element.className = options.className;
-    }
-
-    if (options.styles) {
-      Object.assign(element.style, options.styles);
-    }
-
-    return element;
+    this.treeData = this.treeBuilder.buildTreeStructure(response);
+    this.treeRenderer.render(this.container, this.treeData);
   }
 }
+
+// メインの初期化
+document.addEventListener('DOMContentLoaded', () => {
+  const chromeApi = chrome; // chrome APIの依存性
+
+  // 各クラスのインスタンス生成
+  const domUtils = DOMUtils;
+  const treeSimplifier = new TreeSimplifier();
+  const treeBuilder = new TreeBuilder(treeSimplifier);
+  const dataFetcher = new DataFetcher(chromeApi);
+  const treeRenderer = new TreeRenderer(DOMUtils);
+
+  // TreeViewManagerに依存性を注入
+  const treeViewManager = new TreeViewManager('diff-data', {
+    dataFetcher,
+    treeBuilder,
+    treeRenderer
+  });
+
+  treeViewManager.initialize();
+});
