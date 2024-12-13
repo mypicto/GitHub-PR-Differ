@@ -1,32 +1,75 @@
-/* 既存のスタイル */
+/* グローバルなボックスサイズの設定 */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* カスタムプロパティ（CSS変数）を使用してテーマカラーを管理 */
+:root {
+  --primary-color: #3498db;
+  --secondary-color: #2ecc71;
+  --background-color: #ffffff;
+  --text-color: #333333;
+  --header-font: 'Roboto', sans-serif;
+  --body-font: 'Open Sans', sans-serif;
+  --transition-speed: 0.3s;
+  --padding: 20px;
+  --padding-small: 15px;
+  --padding-xs: 10px;
+  --font-size-header: 24px;
+  --font-size-header-small: 20px;
+  --font-size-header-xs: 18px;
+  --font-size-header-xxs: 16px; /* さらに小さいフォントサイズ */
+  --icon-size: 16px;
+  --icon-size-small: 14px;
+  --icon-size-xs: 12px;
+  --icon-size-xxs: 10px; /* さらに小さいアイコンサイズ */
+}
+
+/* 全体のスタイル */
 body {
-  font-family: Arial, sans-serif;
+  font-family: var(--body-font);
   margin: 0;
-  padding: 20px;
-  background-color: #f9f9f9;
-  width: 600px; /* 固定幅を設定 */
-  height: 1024px; /* 固定高さを設定 */
-  box-sizing: border-box; /* パディングを含めたサイズ計算 */
-  overflow: hidden; /* コンテンツがはみ出さないように隠す */
+  padding: var(--padding);
+  background-color: var(--background-color);
+  width: 100%;
+  max-width: 2048px;
+  min-width: 600px;
+  height: 100vh; /* ビューポートの高さに対応 */
+  overflow-y: auto; /* コンテンツが増えた場合にスクロール */
+  /* overflow-x: hidden; 横スクロールを隠さないように削除 */
+  color: var(--text-color);
+  display: flex;
+  flex-direction: column;
 }
 
+/* ヘッダー */
 h1 {
-  font-size: 20px;
-  margin-bottom: 10px;
+  font-family: var(--header-font);
+  font-size: var(--font-size-header);
+  margin-bottom: 20px;
+  color: var(--primary-color);
+  border-bottom: 2px solid var(--primary-color);
+  padding-bottom: 10px;
+  word-wrap: break-word; /* 長いテキストの折り返し */
+  word-break: break-word; /* テキストの強制折り返し */
+  hyphens: auto; /* ハイフネーションの適用 */
 }
 
+/* リストのリセットとスタイル */
 ul {
-  padding-inline-start: 0px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  /* overflow-x: auto; 横スクロールを許可しない */
 }
 
-/* リスト全体のスタイル */
+/* ツリービューのスタイル */
 .tree-root,
 .tree-root ul {
-  list-style-type: none;
-  margin: 0;
-  /* padding-left: 20px; */
-  padding-inline-start: 20px;
-  transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+  padding-left: 20px;
+  transition: max-height var(--transition-speed) ease-out, opacity var(--transition-speed) ease-out;
   overflow: hidden;
 }
 
@@ -40,57 +83,201 @@ ul {
   opacity: 0;
 }
 
+/* リストアイテム */
 li {
-  margin-bottom: 5px;
+  margin-bottom: 3px;
+  position: relative;
+  transition: background-color var(--transition-speed);
+  word-wrap: break-word; /* 長いテキストの折り返し */
+  word-break: break-word; /* テキストの強制折り返し */
+  hyphens: auto; /* ハイフネーションの適用 */
+  flex-shrink: 0; /* 要素の縮小を禁止 */
 }
 
-/* ツリービュー用の追加スタイル */
+/* ディレクトリのスタイル */
 .directory {
   font-weight: bold;
-  position: relative;
-  padding-left: 20px; /* アイコンスペースを確保 */
   cursor: pointer;
-  color: inherit; /* ホバー時の色変更を継承 */
+  color: var(--primary-color);
+  display: flex;
+  align-items: center;
+  /* flex-wrap: wrap; ラップを許可しない */
 }
 
 .directory::before {
-  content: "▶"; /* 右向き矢印 */
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  transition: transform 0.2s ease;
+  content: "▶";
+  display: inline-block;
+  margin-right: 8px;
+  transition: transform var(--transition-speed);
 }
 
 .directory.expanded::before {
-  transform: translateY(-50%) rotate(90deg); /* 下向き矢印に回転 */
+  transform: rotate(90deg);
 }
 
+/* ファイルのスタイル */
 .file {
-  padding-left: 20px; /* アイコンスペースを確保 */
   cursor: default;
-  position: relative;
-  color: inherit;
+  color: var(--text-color);
+  display: flex;
+  align-items: center;
+  /* flex-wrap: wrap; ラップを許可しない */
 }
 
 .file::before {
   content: "";
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 12px;
-  height: 12px;
+  display: inline-block;
+  width: var(--icon-size);
+  height: var(--icon-size);
+  margin-right: 8px;
   background-image: url('data:image/svg+xml;base64,PHN2ZyBmaWxsPSIjNjY2IiB2aWV3Qm94PSIwIDAgMjQgMjQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTE2IDE0aC0xLjRjLS41IDAtMS4xLS4yLTEuNi0uNi0uNS0uNSA0LjYtLjUgNC42LS4wLjMgMCAuMyAwIDAgMCAxLjMgMS4zIDEuMyAwIDAgMCAxLjMgMS4zIDEuMyAwIDAgMCAxLjMgMS4zIDF2MmgxNWMwIDAtMS4zLS4yLTEuMy0xLjNWMTRjMC0uOC42LTEuMyAxLjMtMS4zLTEuM3ptLTUtNi43bC00LTEuMy0xLTF2LTdoMS4zdjEtMS4zTTEyIDE2Yy0xLjEgMC0yLS45LTIuMS0yLjF2LTMuM0wxMiAxMy4xbDItMS4yVjZhMiAyIDAgMCAwIDItMiAyIDIgMCAwIDAtMiAyem0tMy02Yy0xLjEgMC0yLjEgLS45LTIuMS0yLjF2LTNoMS4zVjE0YTEgMSAwIDAgMSAxLjMgMmgxNmEyIDIgMCAwIDEgMiAyIDIgMiAwIDAgMCAtMiAtMnYtM2gxcjEuMi4xVjJjMC0xLjEgMS0yIDEuMy0ydi0xLjMzQzE5IDE0LjEgMTggMTQgMTggMTR6Ii8+PC9zdmc+');
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
 }
 
-.directory:hover {
-  color: #007bff;
+/* ホバー時の効果 */
+.directory:hover,
+.file:hover {
+  background-color: rgba(0, 123, 255, 0.1);
 }
 
-.file:hover {
-  color: #555;
+/* レスポンシブデザイン */
+@media (max-width: 768px) {
+  body {
+    padding: var(--padding-small);
+    min-width: 600px;
+  }
+
+  h1 {
+    font-size: var(--font-size-header-small);
+  }
+
+  .file::before,
+  .directory::before {
+    width: var(--icon-size-small);
+    height: var(--icon-size-small);
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --padding: 10px;
+    --padding-small: 8px;
+    --font-size-header: 20px;
+    --font-size-header-small: 18px;
+    --icon-size: 14px;
+    --icon-size-small: 12px;
+  }
+
+  body {
+    padding: var(--padding);
+    min-width: 600px;
+  }
+
+  h1 {
+    font-size: var(--font-size-header-small);
+  }
+
+  .file::before,
+  .directory::before {
+    width: var(--icon-size-small);
+    height: var(--icon-size-small);
+  }
+
+  li {
+    padding-left: 20px;
+  }
+}
+
+/* さらに小さい画面向けの調整 */
+@media (max-width: 360px) {
+  :root {
+    --padding: 8px;
+    --padding-small: 5px;
+    --font-size-header: 18px;
+    --font-size-header-small: 16px;
+    --icon-size: 12px;
+    --icon-size-small: 10px;
+  }
+
+  body {
+    padding: var(--padding);
+    min-width: 600px;
+  }
+
+  h1 {
+    font-size: var(--font-size-header-small);
+  }
+
+  .file::before,
+  .directory::before {
+    width: var(--icon-size-small);
+    height: var(--icon-size-small);
+  }
+
+  li {
+    padding-left: 15px;
+  }
+}
+
+/* さらに小さい画面（320px以下）向けの調整 */
+@media (max-width: 320px) {
+  :root {
+    --padding: 5px;
+    --padding-small: 3px;
+    --font-size-header: 16px;
+    --font-size-header-small: 14px;
+    --icon-size: 10px;
+    --icon-size-small: 8px;
+  }
+
+  body {
+    padding: var(--padding);
+    min-width: 600px;
+  }
+
+  h1 {
+    font-size: var(--font-size-header-small);
+  }
+
+  .file::before,
+  .directory::before {
+    width: var(--icon-size-small);
+    height: var(--icon-size-small);
+  }
+
+  li {
+    padding-left: 10px;
+    font-size: 0.85em; /* フォントサイズをさらに縮小 */
+  }
+}
+
+/* オーバーフロー対策 */
+body, ul, li, .directory, .file, h1 {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+}
+
+/* TreeViewコンテナの横スクロールを強調 */
+.tree-root, .tree-root ul {
+  overflow-x: hidden; /* 横スクロールを隠す */
+  -webkit-overflow-scrolling: touch; /* スムーズなスクロール */
+}
+
+/* スクロールバーのスタイリング（オプション） */
+ul::-webkit-scrollbar {
+  height: 6px;
+}
+
+ul::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 123, 255, 0.5);
+  border-radius: 3px;
+}
+
+ul::-webkit-scrollbar-track {
+  background-color: rgba(0, 123, 255, 0.1);
+  border-radius: 3px;
 }
