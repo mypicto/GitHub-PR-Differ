@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "GitHub PR Diff Counter",
+  "version": "1.0",
+  "description": "Extract diff line counts and file paths from GitHub Pull Request pages.",
+  "permissions": ["activeTab", "scripting"],
+  "host_permissions": ["https://github.com/*"],
+  "background": {
+    "service_worker": "js/background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://github.com/*/pull/*/files"],
+      "js": ["js/content.js"]
+    }
+  ],
+  "icons": {
+    "128": "image/icon.png"
+  },
+  "action": {
+    "default_popup": "html/popup.html",
+    "default_icon": "image/icon.png"
+  }
+}
