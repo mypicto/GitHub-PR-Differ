@@ -1,8 +1,13 @@
+/* 既存のスタイル */
 body {
   font-family: Arial, sans-serif;
   margin: 0;
   padding: 20px;
   background-color: #f9f9f9;
+  width: 600px; /* 固定幅を設定 */
+  height: 1024px; /* 固定高さを設定 */
+  box-sizing: border-box; /* パディングを含めたサイズ計算 */
+  overflow: hidden; /* コンテンツがはみ出さないように隠す */
 }
 
 h1 {
@@ -17,4 +22,82 @@ ul {
 
 li {
   margin-bottom: 5px;
+}
+
+/* ツリービュー用の追加スタイル */
+.directory {
+  font-weight: bold;
+  position: relative;
+  padding-left: 20px;
+  cursor: pointer;
+}
+
+.directory::before {
+  content: "▶"; /* 右向き矢印 */
+  position: absolute;
+  left: 0;
+  top: 0;
+  transition: transform 0.2s ease;
+}
+
+.directory.expanded::before {
+  transform: rotate(90deg); /* 下向き矢印 */
+}
+
+.file {
+  padding-left: 20px;
+  cursor: default;
+}
+
+ul {
+  margin: 0;
+  padding-left: 20px;
+  list-style-type: none;
+}
+
+.directory:hover {
+  color: #007bff;
+}
+
+.file:hover {
+  color: #555;
+}
+
+ul {
+  transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+  overflow: hidden;
+}
+
+li ul {
+  max-height: 1000px;
+  opacity: 1;
+}
+
+li ul.collapsed {
+  max-height: 0;
+  opacity: 0;
+}
+
+.directory::after {
+  content: "";
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  background-image: url('data:image/svg+xml;base64,PHN2ZyBmaWxsPSIjNjY2IiB2aWV3Qm94PSIwIDAgMjQgMjQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTE4IDE0aC0xLjRjLS41IDAtMS4xLS4yLTEuNi0uNi0uNS0uNSA0LjYtLjUgNC42LS4wLjMgMCAuMyAwIDAgMCAxLjMgMS4zIDEuMyAwIDAgMCAxLjMgMS4zIDEuMyAwIDAgMCAxLjMgMS4zIDF2MmgxNWMwIDAtMS4zLS4yLTEuMy0xLjNWMTRjMC0uOC42LTEuMyAxLjMtMS4zLTEuM3ptLTUtNi43bC00LTEuMy0xLTF2LTdoMS4zdjEtMS4zTTEyIDE2Yy0xLjEgMC0yLS45LTIuMS0yLjF2LTMuM0wxMiAxMy4xbDItMS4yVjZhMiAyIDAgMCAwIDItMiAyIDIgMCAwIDAtMiAyem0tMy02Yy0xLjEgMC0yLjEgLS45LTIuMS0yLjF2LTNoMS4zVjE0YTEgMSAwIDAgMSAxLjMgMmgxNmEyIDIgMCAwIDEgMiAyIDIgMiAwIDAgMCAtMiAtMnYtM2gxcjEuMi4xVjJjMC0xLjEgMS0yIDEuMy0ydi0xLjMzQzE5IDE0LjEgMTggMTQgMTggMTR6Ii8+PC9zdmc+');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: left center;
+  margin-right: 5px;
+}
+
+.file::before {
+  content: "";
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  background-image: url('data:image/svg+xml;base64,PHN2ZyBmaWxsPSIjNjY2IiB2aWV3Qm94PSIwIDAgMjQgMjQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTE2IDE0aC0xLjRjLS41IDAtMS4xLS4yLTEuNi0uNi0uNS0uNSA0LjYtLjUgNC42LS4wLjMgMCAuMyAwIDAgMCAxLjMgMS4zIDEuMyAwIDAgMCAxLjMgMS4zIDEuMyAwIDAgMCAxLjMgMS4zIDF2MmgxNWMwIDAtMS4zLS4yLTEuMy0xLjNWMTRjMC0uOC42LTEuMyAxLjMtMS4zLTEuM3ptLTUtNi43bC00LTEuMy0xLTF2LTdoMS4zdjEtMS4zTTEyIDE2Yy0xLjEgMC0yLS45LTIuMS0yLjF2LTMuM0wxMiAxMy4xbDItMS4yVjZhMiAyIDAgMCAwIDItMiAyIDIgMCAwIDAtMiAyem0tMy02Yy0xLjEgMC0yLjEgLS45LTIuMS0yLjF2LTNoMS4zVjE0YTEgMSAwIDAgMSAxLjMgMmgxNmEyIDIgMCAwIDEgMiAyIDIgMiAwIDAgMCAtMiAtMnYtM2gxcjEuMi4xVjJjMC0xLjEgMS0yIDEuMy0ydi0xLjMzQzE5IDE0LjEgMTggMTQgMTggMTR6Ii8+PC9zdmc+');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: left center;
+  margin-right: 5px;
 }
