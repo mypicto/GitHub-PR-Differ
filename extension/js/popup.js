@@ -27,7 +27,7 @@ class TreeViewManager {
 
   handleResponse(response) {
     if (!response) {
-      console.error('No response received from content script.');
+      console.log('No response received from content script.');
       return;
     }
 
