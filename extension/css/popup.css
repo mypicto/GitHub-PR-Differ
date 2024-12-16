@@ -43,14 +43,29 @@ body {
   flex-direction: column;
 }
 
+.header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--padding);
+  border-bottom: 2px solid var(--primary-color);
+  padding-bottom: 10px;
+}
+
+/* h1 のスタイル調整（必要に応じて調整） */
+.header-container h1 {
+  font-family: var(--header-font);
+  font-size: var(--font-size-header);
+  color: var(--primary-color);
+  margin: 0; /* 余白をリセット */
+}
+
 /* ヘッダー */
 h1 {
   font-family: var(--header-font);
   font-size: var(--font-size-header);
   margin-bottom: 20px;
   color: var(--primary-color);
-  border-bottom: 2px solid var(--primary-color);
-  padding-bottom: 10px;
   word-wrap: break-word; /* 長いテキストの折り返し */
   word-break: break-word; /* テキストの強制折り返し */
   hyphens: auto; /* ハイフネーションの適用 */
@@ -93,6 +108,22 @@ h1 {
 }
 #review-progress {
   background-image: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+}
+
+/* Exportボタン */
+#export-csv {
+  background-color: var(--secondary-color);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color var(--transition-speed);
+}
+
+#export-csv:hover {
+  background-color: #27ae60; /* --secondary-colorより少し暗い色 */
 }
 
 /* リストのリセットとスタイル */

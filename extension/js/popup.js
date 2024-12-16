@@ -216,6 +216,10 @@ class TreeViewManager {
     this.dataFetcher.fetchActiveTabDiffData((response) => {
       this.handleResponse(response);
     });
+
+    // CSVエクスポートボタンのイベントリスナーを追加
+    const exportButton = document.getElementById('export-csv');
+    exportButton.addEventListener('click', () => this.exportTreeDataToCSV());
   }
 
   handleResponse(response) {
@@ -238,6 +242,44 @@ class TreeViewManager {
     const progress = totalDiff === 0 ? 0 : ((viewedDiff / totalDiff) * 100).toFixed(2);
 
     this.progressContainer.textContent = `${progress}% (${viewedDiff.toLocaleString()} / ${totalDiff.toLocaleString()})`;
+  }
+
+  /**
+   * treeData を CSV ファイルとしてエクスポートする
+   */
+  exportTreeDataToCSV() {
+    if (!this.treeData) {
+      console.error('ツリーデータがありません。');
+      return;
+    }
+
+    const rows = [];
+    rows.push(['ファイルパス', 'Diff', 'Viewed']); // 'Viewed' カラムを追加
+
+    const traverse = (node) => {
+      for (const key in node) {
+        if (node.hasOwnProperty(key)) {
+          const item = node[key];
+          if (!this.treeRenderer.hasChildren(item)) {
+            rows.push([item.filePath, item.diff, item.isViewed]); // 'isViewed' を追加
+          } else {
+            traverse(item.children);
+          }
+        }
+      }
+    };
+
+    traverse(this.treeData);
+
+    const csvContent = '\uFEFF' + rows.map(e => e.join(",")).join("\n"); // BOM付きUTF-8
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'diffs.csv'; // ファイル名を diffs.csv に変更
+    a.click();
+    URL.revokeObjectURL(url);
   }
 }
 
