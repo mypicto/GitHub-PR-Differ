@@ -56,6 +56,45 @@ h1 {
   hyphens: auto; /* ハイフネーションの適用 */
 }
 
+#review-progress {
+  margin: 15px 0;
+  padding: 12px 20px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #ffffff;
+  background-color: var(--primary-color);
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background-color var(--transition-speed), box-shadow var(--transition-speed);
+}
+#review-progress::before {
+  content: "進捗状況:";
+  margin-right: 10px;
+  font-size: 16px;
+}
+#review-progress span {
+  font-size: 16px;
+}
+/* レスポンシブデザイン調整 */
+@media (max-width: 768px) {
+  #review-progress {
+    font-size: 16px;
+    padding: 10px 15px;
+  }
+  #review-progress::before {
+    font-size: 14px;
+  }
+  #review-progress span {
+    font-size: 14px;
+  }
+}
+#review-progress {
+  background-image: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+}
+
 /* リストのリセットとスタイル */
 ul {
   list-style: none;

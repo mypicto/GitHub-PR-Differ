@@ -3,12 +3,6 @@ function extractFilePath(fileElement) {
   if (!filePath) {
     return null;
   }
-
-  const isHidden = fileElement.hasAttribute('hidden');
-  if (isHidden) {
-    return null;
-  }
-
   return filePath;
 }
 
@@ -39,13 +33,20 @@ function extractFileData(fileElement) {
     return null;
   }
 
+  const isHidden = fileElement.hasAttribute('hidden');
+  if (isHidden) {
+    return null;
+  }
+
   const diffstatElement = fileElement.querySelector('span.diffstat');
   const diff = parseDiffText(diffstatElement);
   if (!diff) {
     return null;
   }
 
-  return { filePath, diff };
+  const isViewed = fileElement.hasAttribute('data-file-user-viewed');
+
+  return { filePath, diff, isViewed };
 }
 
 function extractDiffData() {

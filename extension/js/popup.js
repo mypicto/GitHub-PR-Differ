@@ -178,6 +178,7 @@ class TreeViewManager {
     this.dataFetcher = dependencies.dataFetcher;
     this.treeBuilder = dependencies.treeBuilder;
     this.treeRenderer = dependencies.treeRenderer;
+    this.progressContainer = document.getElementById('review-progress');
   }
 
   initialize() {
@@ -192,8 +193,20 @@ class TreeViewManager {
       return;
     }
 
+    this.updateReviewProgress(response);
     this.treeData = this.treeBuilder.buildTreeStructure(response);
     this.treeRenderer.render(this.container, this.treeData);
+  }
+
+  updateReviewProgress(diffs) {
+    const totalDiff = diffs.reduce((sum, diff) => sum + (parseInt(diff.diff, 10) || 0), 0);
+    const viewedDiff = diffs
+      .filter(diff => diff.isViewed)
+      .reduce((sum, diff) => sum + (parseInt(diff.diff, 10) || 0), 0);
+
+    const progress = totalDiff === 0 ? 0 : ((viewedDiff / totalDiff) * 100).toFixed(2);
+
+    this.progressContainer.textContent = `${progress}% (${viewedDiff.toLocaleString()} / ${totalDiff.toLocaleString()})`;
   }
 }
 
