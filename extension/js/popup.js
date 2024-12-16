@@ -64,6 +64,7 @@ class TreeBuilder {
           // ファイルの場合、累積diffを上書き
           current[part].filePath = diff.filePath;
           current[part].diff = fileDiff;
+          current[part].isViewed = diff.isViewed;
         }
 
         current = current[part].children;
@@ -73,7 +74,34 @@ class TreeBuilder {
     // ツリーの簡略化
     this.simplifier.simplify(tree);
 
+    // isViewed フラグを親ディレクトリに設定
+    this.setDirectoryViewed(tree);
+
     return tree;
+  }
+
+  /**
+   * 再帰的にツリーを走査し、すべての子が isViewed=true であれば親にも isViewed=true を設定する
+   */
+  setDirectoryViewed(node) {
+    Object.keys(node).forEach(key => {
+      const item = node[key];
+      if (this.hasChildren(item)) {
+        this.setDirectoryViewed(item.children);
+        const childrenKeys = Object.keys(item.children);
+        const allViewed = childrenKeys.every(childKey => {
+          const child = item.children[childKey];
+          return child.isViewed === true;
+        });
+        if (allViewed) {
+          item.isViewed = true;
+        }
+      }
+    });
+  }
+
+  hasChildren(item) {
+    return item.children && Object.keys(item.children).length > 0;
   }
 }
 
@@ -138,7 +166,7 @@ class TreeRenderer {
         // ディレクトリの場合
         const span = this.domUtils.createElement('span', {
           textContent: `${key}/ (${item.diff.toLocaleString()})`,
-          className: 'directory expanded'
+          className: `directory expanded${item.isViewed ? ' viewed' : ''}`
         });
 
         span.addEventListener('click', () => this.toggleDirectory(li, span));
@@ -152,6 +180,9 @@ class TreeRenderer {
         // ファイルの場合
         li.textContent = `${key} (${item.diff.toLocaleString()})`;
         li.classList.add('file');
+        if (item.isViewed) {
+          li.classList.add('viewed');
+        }
       }
 
       parent.appendChild(li);
