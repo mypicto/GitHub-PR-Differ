@@ -33,7 +33,12 @@ class DataFetcher {
         return;
       }
       this.chrome.tabs.sendMessage(tabs[0].id, { action: "extractDiffData" }, (response) => {
-        callback(response);
+        if (chrome.runtime.lastError) {
+          console.info(chrome.runtime.lastError.message);
+          callback(null);
+        } else {
+          callback(response);
+        }
       });
     });
   }
