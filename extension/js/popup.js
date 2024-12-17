@@ -66,7 +66,7 @@ class DataFetcher {
 
 class TreeSimplifier {
   simplify(node) {
-    Object.keys(node).forEach(key => {
+    Object.keys(node).sort().forEach(key => {
       let currentKey = key;
       let currentItem = node[key];
 
@@ -142,7 +142,7 @@ class TreeBuilder {
    * 再帰的にツリーを走査し、すべての子が isViewed=true であれば親にも isViewed=true を設定する
    */
   setDirectoryViewed(node) {
-    Object.keys(node).forEach(key => {
+    Object.keys(node).sort().forEach(key => {
       const item = node[key];
       if (this.hasChildren(item)) {
         this.setDirectoryViewed(item.children);
@@ -177,7 +177,8 @@ class CSVExporter {
     const rows = [['ファイルパス', 'Diff', 'Viewed']];
 
     const traverse = (node) => {
-      for (const key in node) {
+      const sortedKeys = Object.keys(node).sort();
+      for (const key of sortedKeys) {
         if (node.hasOwnProperty(key)) {
           const item = node[key];
           if (!treeRenderer.hasChildren(item)) {
@@ -217,7 +218,7 @@ class TreeRenderer {
   }
 
   createTreeView(parent, node) {
-    Object.keys(node).forEach(key => {
+    Object.keys(node).sort().forEach(key => {
       const li = this.domUtils.createElement('li');
       const item = node[key];
 
