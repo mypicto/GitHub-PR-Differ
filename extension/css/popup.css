@@ -34,8 +34,8 @@ body {
   padding: var(--padding);
   background-color: var(--background-color);
   width: 100%;
-  max-width: 2048px;
-  min-width: 600px;
+  min-width: 800px; /* Chrome popupのサイズ上限 */
+  min-width: 600px; /* Chrome popupのサイズ上限 */
   height: 100vh; /* ビューポートの高さに対応 */
   overflow-y: auto; /* コンテンツが増えた場合にスクロール */
   color: var(--text-color);
@@ -136,13 +136,13 @@ ul {
 /* ツリービューのスタイル */
 .tree-root,
 .tree-root ul {
-  padding-left: 20px;
   transition: max-height var(--transition-speed) ease-out, opacity var(--transition-speed) ease-out;
   overflow: hidden;
+  opacity: 1;
 }
 
-.tree-root ul {
-  opacity: 1;
+ul.nested {
+  padding-left: 20px;
 }
 
 .tree-root ul.collapsed {
@@ -215,117 +215,6 @@ li {
 
 .file.viewed {
   color: #999; /* 彩度を低くした色に変更 */
-}
-
-/* レスポンシブデザイン */
-@media (max-width: 768px) {
-  body {
-    padding: var(--padding-small);
-    min-width: 600px;
-  }
-
-  h1 {
-    font-size: var(--font-size-header-small);
-  }
-
-  .file::before,
-  .directory::before {
-    width: var(--icon-size-small);
-    height: var(--icon-size-small);
-  }
-}
-
-@media (max-width: 480px) {
-  :root {
-    --padding: 10px;
-    --padding-small: 8px;
-    --font-size-header: 20px;
-    --font-size-header-small: 18px;
-    --icon-size: 14px;
-    --icon-size-small: 12px;
-  }
-
-  body {
-    padding: var(--padding);
-    min-width: 600px;
-  }
-
-  h1 {
-    font-size: var(--font-size-header-small);
-  }
-
-  .file::before,
-  .directory::before {
-    width: var(--icon-size-small);
-    height: var(--icon-size-small);
-  }
-
-  li {
-    padding-left: 20px;
-  }
-}
-
-/* さらに小さい画面向けの調整 */
-@media (max-width: 360px) {
-  :root {
-    --padding: 8px;
-    --padding-small: 5px;
-    --font-size-header: 18px;
-    --font-size-header-small: 16px;
-    --icon-size: 12px;
-    --icon-size-small: 10px;
-  }
-
-  body {
-    padding: var(--padding);
-    min-width: 600px;
-  }
-
-  h1 {
-    font-size: var(--font-size-header-small);
-  }
-
-  .file::before,
-  .directory::before {
-    width: var(--icon-size-small);
-    height: var(--icon-size-small);
-  }
-
-  li {
-    padding-left: 15px;
-  }
-}
-
-/* さらに小さい画面（320px以下）向けの調整 */
-@media (max-width: 320px) {
-  :root {
-    --padding: 5px;
-    --padding-small: 3px;
-    --font-size-header: 16px;
-    --font-size-header-small: 14px;
-    --icon-size: 10px;
-    --icon-size-small: 8px;
-  }
-
-  body {
-    padding: var(--padding);
-    min-width: 600px;
-  }
-
-  h1 {
-    font-size: var(--font-size-header-small);
-  }
-
-  .file::before,
-  .directory::before {
-    width: var(--icon-size-small);
-    height: var(--icon-size-small);
-  }
-
-  li {
-    padding-left: 10px;
-    font-size: 0.85em; /* フォントサイズをさらに縮小 */
-  }
 }
 
 /* オーバーフロー対策 */

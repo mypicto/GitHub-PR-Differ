@@ -110,38 +110,40 @@ class TreeBuilder {
   }
 }
 
-// TreeSimplifier.js
 class TreeSimplifier {
   simplify(node) {
     Object.keys(node).forEach(key => {
-      const item = node[key];
-      const childKeys = Object.keys(item.children);
+      let currentKey = key;
+      let currentItem = node[key];
 
-      // サブディレクトリが1つだけで、かつその子がさらに子を持つ場合
-      if (childKeys.length === 1) {
-        const childKey = childKeys[0];
-        const childItem = item.children[childKey];
+      // サブディレクトリが一つしかない限り、パスを結合
+      while (Object.keys(currentItem.children).length === 1) {
+        const childKey = Object.keys(currentItem.children)[0];
+        const childItem = currentItem.children[childKey];
 
-        if (Object.keys(childItem.children).length > 0) { // 追加条件
-          // パスを結合
-          const combinedKey = `${key}/${childKey}`;
-          node[combinedKey] = {
-            diff: item.diff + childItem.diff,
-            children: childItem.children,
-            filePath: childItem.filePath || null
-          };
-          delete node[key];
-
-          // 再帰的に簡略化
-          this.simplify(node[combinedKey].children);
-        } else {
-          // 子がさらに子を持たない場合は結合しない
-          this.simplify(item.children);
+        if (Object.keys(childItem.children).length === 0) {
+          break;
         }
-      } else {
-        // サブディレクトリが複数ある場合、再帰的に処理
-        this.simplify(item.children);
+
+        // パスを結合
+        currentKey = `${currentKey}/${childKey}`;
+        currentItem = childItem;
       }
+
+      // パスを更新
+      node[currentKey] = {
+        diff: currentItem.diff,
+        children: currentItem.children,
+        filePath: currentItem.filePath || null
+      };
+
+      // 元のキーを削除
+      if (currentKey !== key) {
+        delete node[key];
+      }
+
+      // 再帰的に簡略化
+      this.simplify(node[currentKey].children);
     });
   }
 }
