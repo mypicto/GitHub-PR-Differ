@@ -230,8 +230,14 @@ class TreeViewManager {
   }
 
   handleResponse(response) {
-    if (!response) {
-      console.log('No response received from content script.');
+
+    if (!response || response.length === 0) {
+      // 差分が存在しない場合の処理
+      this.container.innerHTML = '<div class="no-difference">No difference found.</div>';
+      const exportButton = document.getElementById('export-csv');
+      if (exportButton) {
+        exportButton.disabled = true;
+      }
       return;
     }
 
@@ -261,14 +267,14 @@ class TreeViewManager {
     }
 
     const rows = [];
-    rows.push(['ファイルパス', 'Diff', 'Viewed']); // 'Viewed' カラムを追加
+    rows.push(['ファイルパス', 'Diff', 'Viewed']);
 
     const traverse = (node) => {
       for (const key in node) {
         if (node.hasOwnProperty(key)) {
           const item = node[key];
           if (!this.treeRenderer.hasChildren(item)) {
-            rows.push([item.filePath, item.diff, item.isViewed]); // 'isViewed' を追加
+            rows.push([item.filePath, item.diff, item.isViewed]);
           } else {
             traverse(item.children);
           }
@@ -284,7 +290,7 @@ class TreeViewManager {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'diffs.csv'; // ファイル名を diffs.csv に変更
+    a.download = 'diffs.csv';
     a.click();
     URL.revokeObjectURL(url);
   }

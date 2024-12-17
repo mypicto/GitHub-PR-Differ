@@ -15,12 +15,10 @@
   --body-font: 'Open Sans', sans-serif;
   --transition-speed: 0.3s;
   --padding: 20px;
-  --padding-small: 15px;
+  --padding-small: 10px;
   --padding-xs: 10px;
   --font-size-header: 24px;
-  --font-size-header-small: 20px;
-  --font-size-header-xs: 18px;
-  --font-size-header-xxs: 16px; /* さらに小さいフォントサイズ */
+  --font-size-message: 12px;
   --icon-size: 16px;
   --icon-size-small: 14px;
   --icon-size-xs: 12px;
@@ -124,6 +122,12 @@ h1 {
 
 #export-csv:hover {
   background-color: #27ae60; /* --secondary-colorより少し暗い色 */
+}
+
+#export-csv:disabled {
+  background-color: var(--secondary-color);
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* リストのリセットとスタイル */
@@ -244,4 +248,15 @@ ul::-webkit-scrollbar-thumb {
 ul::-webkit-scrollbar-track {
   background-color: rgba(0, 123, 255, 0.1);
   border-radius: 3px;
+}
+
+.no-difference {
+  font-size: var(--font-size-message);
+  color: var(--text-color-muted);
+  text-align: center;
+  padding: var(--padding-small);
+  background-color: rgba(0, 0, 0, 0.03);
+  border: 1px solid var(--secondary-color);
+  border-radius: 4px;
+  margin: var(--padding-small) 0;
 }
