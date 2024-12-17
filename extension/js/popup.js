@@ -88,7 +88,8 @@ class TreeSimplifier {
       node[currentKey] = {
         diff: currentItem.diff,
         children: currentItem.children,
-        filePath: currentItem.filePath || null
+        filePath: currentItem.filePath || null,
+        isViewed: currentItem.isViewed
       };
 
       // 元のキーを削除
@@ -313,6 +314,7 @@ class TreeViewManager {
 
     this.updateReviewProgress(response);
     this.treeData = this.treeBuilder.buildTreeStructure(response);
+    console.log(this.treeData);
     this.treeRenderer.render(this.container, this.treeData);
   }
 
