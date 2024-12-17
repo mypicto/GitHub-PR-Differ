@@ -1,6 +1,5 @@
-// DOMUtils.js
 class DOMUtils {
-  static createElement(tag, options = {}) {
+  createElement(tag, options = {}) {
     const element = document.createElement(tag);
 
     if (options.textContent) {
@@ -15,98 +14,53 @@ class DOMUtils {
       Object.assign(element.style, options.styles);
     }
 
+    if (options.href) {
+      element.href = options.href;
+    }
+
+    if (options.download) {
+      element.download = options.download;
+    }
+
     return element;
+  }
+
+  addClass(element, className) {
+    if (!element.classList.contains(className)) {
+      element.classList.add(className);
+    }
+  }
+
+  removeClass(element, className) {
+    if (element.classList.contains(className)) {
+      element.classList.remove(className);
+    }
   }
 }
 
-// DataFetcher.js
 class DataFetcher {
   constructor(chromeApi) {
     this.chrome = chromeApi;
   }
 
-  fetchActiveTabDiffData(callback) {
-    this.chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      if (tabs.length === 0) {
-        console.error('No active tabs found.');
-        callback(null);
-        return;
-      }
-      this.chrome.tabs.sendMessage(tabs[0].id, { action: "extractDiffData" }, (response) => {
-        if (chrome.runtime.lastError) {
-          console.info(chrome.runtime.lastError.message);
-          callback(null);
-        } else {
-          callback(response);
+  fetchActiveTabDiffData() {
+    return new Promise((resolve, reject) => {
+      this.chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (tabs.length === 0) {
+          console.error('No active tabs found.');
+          resolve(null);
+          return;
         }
-      });
-    });
-  }
-}
-
-// TreeBuilder.js
-class TreeBuilder {
-  constructor(simplifier) {
-    this.simplifier = simplifier;
-  }
-
-  buildTreeStructure(diffs) {
-    const tree = {};
-
-    diffs.forEach(diff => {
-      const parts = diff.filePath.split('/');
-      let current = tree;
-      const fileDiff = parseInt(diff.diff, 10) || 0;
-
-      parts.forEach((part, index) => {
-        if (!current[part]) {
-          current[part] = { diff: 0, children: {} };
-        }
-        // ディレクトリの累積diffを更新
-        current[part].diff += fileDiff;
-
-        if (index === parts.length - 1) {
-          // ファイルの場合、累積diffを上書き
-          current[part].filePath = diff.filePath;
-          current[part].diff = fileDiff;
-          current[part].isViewed = diff.isViewed;
-        }
-
-        current = current[part].children;
-      });
-    });
-
-    // ツリーの簡略化
-    this.simplifier.simplify(tree);
-
-    // isViewed フラグを親ディレクトリに設定
-    this.setDirectoryViewed(tree);
-
-    return tree;
-  }
-
-  /**
-   * 再帰的にツリーを走査し、すべての子が isViewed=true であれば親にも isViewed=true を設定する
-   */
-  setDirectoryViewed(node) {
-    Object.keys(node).forEach(key => {
-      const item = node[key];
-      if (this.hasChildren(item)) {
-        this.setDirectoryViewed(item.children);
-        const childrenKeys = Object.keys(item.children);
-        const allViewed = childrenKeys.every(childKey => {
-          const child = item.children[childKey];
-          return child.isViewed === true;
+        this.chrome.tabs.sendMessage(tabs[0].id, { action: "extractDiffData" }, (response) => {
+          if (chrome.runtime.lastError) {
+            console.info(chrome.runtime.lastError.message);
+            resolve(null);
+          } else {
+            resolve(response);
+          }
         });
-        if (allViewed) {
-          item.isViewed = true;
-        }
-      }
+      });
     });
-  }
-
-  hasChildren(item) {
-    return item.children && Object.keys(item.children).length > 0;
   }
 }
 
@@ -148,7 +102,105 @@ class TreeSimplifier {
   }
 }
 
-// TreeRenderer.js
+class TreeBuilder {
+  constructor(simplifier) {
+    this.simplifier = simplifier;
+  }
+
+  buildTreeStructure(diffs) {
+    const tree = {};
+    diffs.forEach(diff => this.addDiffToTree(tree, diff));
+    this.simplifier.simplify(tree);
+    this.setDirectoryViewed(tree);
+    return tree;
+  }
+
+  addDiffToTree(tree, diff) {
+    const parts = diff.filePath.split('/');
+    let current = tree;
+    const fileDiff = parseInt(diff.diff, 10) || 0;
+
+    parts.forEach((part, index) => {
+      if (!current[part]) {
+        current[part] = { diff: 0, children: {} };
+      }
+      // ディレクトリの累積diffを更新
+      current[part].diff += fileDiff;
+
+      if (index === parts.length - 1) {
+        // ファイルの場合、累積diffを上書き
+        current[part].filePath = diff.filePath;
+        current[part].diff = fileDiff;
+        current[part].isViewed = diff.isViewed;
+      }
+
+      current = current[part].children;
+    });
+  }
+
+  /**
+   * 再帰的にツリーを走査し、すべての子が isViewed=true であれば親にも isViewed=true を設定する
+   */
+  setDirectoryViewed(node) {
+    Object.keys(node).forEach(key => {
+      const item = node[key];
+      if (this.hasChildren(item)) {
+        this.setDirectoryViewed(item.children);
+        const childrenKeys = Object.keys(item.children);
+        const allViewed = childrenKeys.every(childKey => {
+          const child = item.children[childKey];
+          return child.isViewed === true;
+        });
+        if (allViewed) {
+          item.isViewed = true;
+        }
+      }
+    });
+  }
+
+  hasChildren(item) {
+    return item.children && Object.keys(item.children).length > 0;
+  }
+}
+
+class CSVExporter {
+  constructor(domUtils) {
+    this.domUtils = domUtils;
+  }
+
+  exportToCSV(treeData, treeRenderer) {
+    if (!treeData) {
+      console.error('ツリーデータがありません。');
+      return;
+    }
+
+    const rows = [['ファイルパス', 'Diff', 'Viewed']];
+
+    const traverse = (node) => {
+      for (const key in node) {
+        if (node.hasOwnProperty(key)) {
+          const item = node[key];
+          if (!treeRenderer.hasChildren(item)) {
+            rows.push([item.filePath, item.diff, item.isViewed]);
+          } else {
+            traverse(item.children);
+          }
+        }
+      }
+    };
+
+    traverse(treeData);
+
+    const csvContent = '\uFEFF' + rows.map(e => e.join(",")).join("\n"); // BOM付きUTF-8
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = this.domUtils.createElement('a', { href: url, download: 'diffs.csv' });
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+}
+
 class TreeRenderer {
   constructor(domUtils) {
     this.domUtils = domUtils;
@@ -176,7 +228,7 @@ class TreeRenderer {
           className: `directory expanded${item.isViewed ? ' viewed' : ''}`
         });
 
-        span.addEventListener('click', () => this.toggleDirectory(li, span));
+        span.addEventListener('click', (event) => this.handleClick(event));
 
         li.appendChild(span);
 
@@ -196,6 +248,12 @@ class TreeRenderer {
     });
   }
 
+  handleClick(event) {
+    const span = event.target;
+    const li = span.parentElement;
+    this.toggleDirectory(li, span);
+  }
+
   toggleDirectory(li, span) {
     const childUl = li.querySelector('ul');
     if (childUl) {
@@ -209,7 +267,6 @@ class TreeRenderer {
   }
 }
 
-// TreeViewManager.js
 class TreeViewManager {
   constructor(containerId, dependencies) {
     this.container = document.getElementById(containerId);
@@ -217,20 +274,32 @@ class TreeViewManager {
     this.treeBuilder = dependencies.treeBuilder;
     this.treeRenderer = dependencies.treeRenderer;
     this.progressContainer = document.getElementById('review-progress');
+    this.domUtils = dependencies.domUtils;
+    this.csvExporter = dependencies.csvExporter;
+    this.treeData = null;
   }
 
   initialize() {
-    this.dataFetcher.fetchActiveTabDiffData((response) => {
-      this.handleResponse(response);
-    });
+    this.bindEvents();
+    this.fetchData();
+  }
 
+  bindEvents() {
     // CSVエクスポートボタンのイベントリスナーを追加
     const exportButton = document.getElementById('export-csv');
-    exportButton.addEventListener('click', () => this.exportTreeDataToCSV());
+    exportButton.addEventListener('click', () => this.csvExporter.exportToCSV(this.treeData, this.treeRenderer));
+  }
+
+  async fetchData() {
+    try {
+      const response = await this.dataFetcher.fetchActiveTabDiffData();
+      this.handleResponse(response);
+    } catch (error) {
+      console.error('データ取得中にエラーが発生しました:', error);
+    }
   }
 
   handleResponse(response) {
-
     if (!response || response.length === 0) {
       // 差分が存在しない場合の処理
       this.container.innerHTML = '<div class="no-difference">No difference found.</div>';
@@ -256,44 +325,6 @@ class TreeViewManager {
 
     this.progressContainer.textContent = `${progress}% (${viewedDiff.toLocaleString()} / ${totalDiff.toLocaleString()})`;
   }
-
-  /**
-   * treeData を CSV ファイルとしてエクスポートする
-   */
-  exportTreeDataToCSV() {
-    if (!this.treeData) {
-      console.error('ツリーデータがありません。');
-      return;
-    }
-
-    const rows = [];
-    rows.push(['ファイルパス', 'Diff', 'Viewed']);
-
-    const traverse = (node) => {
-      for (const key in node) {
-        if (node.hasOwnProperty(key)) {
-          const item = node[key];
-          if (!this.treeRenderer.hasChildren(item)) {
-            rows.push([item.filePath, item.diff, item.isViewed]);
-          } else {
-            traverse(item.children);
-          }
-        }
-      }
-    };
-
-    traverse(this.treeData);
-
-    const csvContent = '\uFEFF' + rows.map(e => e.join(",")).join("\n"); // BOM付きUTF-8
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'diffs.csv';
-    a.click();
-    URL.revokeObjectURL(url);
-  }
 }
 
 // メインの初期化
@@ -301,17 +332,20 @@ document.addEventListener('DOMContentLoaded', () => {
   const chromeApi = chrome; // chrome APIの依存性
 
   // 各クラスのインスタンス生成
-  const domUtils = DOMUtils;
+  const domUtils = new DOMUtils();
   const treeSimplifier = new TreeSimplifier();
   const treeBuilder = new TreeBuilder(treeSimplifier);
   const dataFetcher = new DataFetcher(chromeApi);
-  const treeRenderer = new TreeRenderer(DOMUtils);
+  const treeRenderer = new TreeRenderer(domUtils);
+  const csvExporter = new CSVExporter(domUtils);
 
   // TreeViewManagerに依存性を注入
   const treeViewManager = new TreeViewManager('diff-data', {
     dataFetcher,
     treeBuilder,
-    treeRenderer
+    treeRenderer,
+    domUtils,
+    csvExporter
   });
 
   treeViewManager.initialize();
