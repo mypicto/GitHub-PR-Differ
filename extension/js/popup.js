@@ -227,14 +227,14 @@ class TreeRenderer {
         // ディレクトリの場合
         const span = this.domUtils.createElement('span', {
           textContent: `${key}/ (${item.diff.toLocaleString()})`,
-          className: `directory expanded${item.isViewed ? ' viewed' : ''}`
+          className: `directory ${item.isViewed ? 'viewed' : 'expanded'}`
         });
 
         span.addEventListener('click', (event) => this.handleClick(event));
 
         li.appendChild(span);
 
-        const ul = this.domUtils.createElement('ul', { className: 'nested' });
+        const ul = this.domUtils.createElement('ul', { className: `nested ${item.isViewed ? 'collapsed' : ''}` });
         this.createTreeView(ul, item.children);
         li.appendChild(ul);
       } else {
